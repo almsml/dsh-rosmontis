@@ -19,10 +19,10 @@ from pathlib import Path
 from typing import Any, TextIO
 
 try:
-    from .animation_model import AnimationModel, crossfade_duration
+    from .animation_model import AnimationModel, Clip, crossfade_duration
     from .layout_store import default_layout_path, load_layout, save_layout
 except ImportError:
-    from animation_model import AnimationModel, crossfade_duration
+    from animation_model import AnimationModel, Clip, crossfade_duration
     from layout_store import default_layout_path, load_layout, save_layout
 
 
@@ -171,7 +171,13 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
                 else self.layout["reducedMotion"]
             )
             self.activity_level = os.environ.get("DSH_DAFEIYU_ACTIVITY_LEVEL", "normal")
+            configured_micro_ms = os.environ.get("DSH_DAFEIYU_MICRO_MS")
+            try:
+                self.micro_ms = min(3000, max(400, int(configured_micro_ms))) if configured_micro_ms else 1000
+            except ValueError:
+                self.micro_ms = 1000
             self.model = AnimationModel(manifest)
+            self._apply_micro_ms()
             self.pixmaps: dict[str, QPixmap] = {}
             for clip in self.model.clips.values():
                 for frame in clip.frames:
@@ -294,6 +300,20 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
             if snapshot_path is not None and not self.snapshot_saved:
                 QTimer.singleShot(180, self._save_snapshot)
 
+        def _apply_micro_ms(self) -> None:
+            """Set micro clip frameMs so each idle micro lasts self.micro_ms total (2 frames)."""
+            half = max(50, round(self.micro_ms / 2))
+            for name in self.model.idle_micro_clips:
+                clip = self.model.clips.get(name)
+                if clip is not None:
+                    self.model.clips[name] = Clip(
+                        name=clip.name,
+                        frames=clip.frames,
+                        frame_ms=half,
+                        loop=clip.loop,
+                        motion=clip.motion,
+                    )
+
         def _apply_config(self, message: dict[str, Any]) -> None:
             """Apply a live CONFIG message without restarting the window."""
             scale = message.get("scale")
@@ -315,6 +335,10 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
                 self.activity_level = activity_level
                 if not self.reduced_motion:
                     self._schedule_micro()
+            micro_ms = message.get("microMs")
+            if isinstance(micro_ms, (int, float)) and not isinstance(micro_ms, bool):
+                self.micro_ms = min(3000, max(400, int(micro_ms)))
+                self._apply_micro_ms()
             self._apply_window_size()
             self._move_to_pet(self.pet_x, self.pet_y)
             self._save_layout()

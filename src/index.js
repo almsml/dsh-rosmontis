@@ -19,6 +19,7 @@ export const Config = Schema.object({
     Schema.const('normal').description('标准'),
     Schema.const('lively').description('活泼'),
   ]).default('normal').description('空闲微动作频率'),
+  microMs: Schema.number().min(400).max(3000).step(100).default(1000).role('slider').description('空闲微动作时长（毫秒）'),
   reducedMotion: Schema.boolean().default(false).description('减少走动、循环帧和程序化晃动'),
   includeSubagents: Schema.boolean().default(false).description('允许子 Agent 抢占宠物状态'),
 }).description('由 DeepSeek Harness 状态驱动的迷迭香桌面伴侣')
@@ -28,6 +29,7 @@ const defaults = Object.freeze({
   scale: 1,
   bubbleScale: 1,
   activityLevel: 'normal',
+  microMs: 1000,
   reducedMotion: false,
   includeSubagents: false,
 })
@@ -38,6 +40,7 @@ function publicConfig(config = {}) {
     scale: config.scale ?? defaults.scale,
     bubbleScale: config.bubbleScale ?? defaults.bubbleScale,
     activityLevel: config.activityLevel ?? defaults.activityLevel,
+    microMs: config.microMs ?? defaults.microMs,
     reducedMotion: config.reducedMotion ?? defaults.reducedMotion,
     includeSubagents: config.includeSubagents ?? defaults.includeSubagents,
   }
@@ -141,6 +144,7 @@ function mount(ctx, config = {}, eventCtx = ctx) {
       bubbleScale: next.bubbleScale ?? defaults.bubbleScale,
       activityLevel: next.activityLevel ?? defaults.activityLevel,
       reducedMotion: next.reducedMotion === true,
+      microMs: next.microMs ?? defaults.microMs,
     }))
   }
 
@@ -167,6 +171,7 @@ function mount(ctx, config = {}, eventCtx = ctx) {
         DSH_DAFEIYU_BUBBLE_SCALE: String(resolved.bubbleScale ?? defaults.bubbleScale),
         DSH_DAFEIYU_ACTIVITY_LEVEL: String(resolved.activityLevel ?? defaults.activityLevel),
         DSH_DAFEIYU_REDUCED_MOTION: resolved.reducedMotion === true ? '1' : '0',
+        DSH_DAFEIYU_MICRO_MS: String(resolved.microMs ?? defaults.microMs),
         DSH_DAFEIYU_WEBUI_URL: String(config.webuiUrl ?? process.env.DSH_DAFEIYU_WEBUI_URL ?? 'http://127.0.0.1:3080/'),
       },
     }, logger)
