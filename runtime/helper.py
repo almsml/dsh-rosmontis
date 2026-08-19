@@ -221,6 +221,7 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
             self.micro_weights: dict[str, float] = {
                 name: 1.0 for name in self.model.idle_micro_clips
             }
+            self.last_action_switch_ms = 0
             if not self.reduced_motion:
                 self._schedule_micro()
             self.snapshot_saved = False
@@ -263,13 +264,14 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
                 if kind == "pulse":
                     ttl_ms = max(250, int(message.get("ttlMs", 1800)))
                     resume_state = str(message.get("resumeState", self.model.base_state))
-                    self.model.apply_pulse(
-                        state,
-                        ttl_ms,
-                        self._now_ms(),
-                        resume_state,
-                        message.get("resumeActivity"),
-                    )
+                    if self._action_allowed(self.model._clip_for(state, None)):
+                        self.model.apply_pulse(
+                            state,
+                            ttl_ms,
+                            self._now_ms(),
+                            resume_state,
+                            message.get("resumeActivity"),
+                        )
                     self._show_status(
                         str(message.get("resumeMessage", self.LABELS.get(resume_state, resume_state))),
                         str(message.get("resumeDetail", "")),
@@ -286,8 +288,9 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
                         self._notify_alert(state)
                 else:
                     activity = None if self.reduced_motion else message.get("activity")
-                    self.model.apply_state(state, activity)
-                    self._clear_overlay()
+                    if self._action_allowed(self.model._clip_for(state, activity)):
+                        self.model.apply_state(state, activity)
+                        self._clear_overlay()
                     persistent = state in {"THINKING", "WORKING", "WAITING", "ERROR"}
                     self._show_status(
                         str(message.get("message", self.LABELS.get(state, state))),
@@ -362,12 +365,30 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
         def _play_idle_micro(self) -> None:
             if self.reduced_motion:
                 return
+            names = list(self.model.idle_micro_clips)
+            if not names:
+                return
+            index = self._weighted_micro_index()
+            if not self._action_allowed(names[index % len(names)]):
+                return
             previous_frame = self.model.frame
             previous_clip = self.model.active_clip_name
-            self.model.play_idle_micro(self._weighted_micro_index())
+            self.model.play_idle_micro(index)
             self._sync_frame_transition(previous_frame, previous_clip)
             self.update()
             self._schedule_micro()
+
+        def _action_allowed(self, target_clip: str | None = None) -> bool:
+            """True if a clip switch may happen now: every action must hold for at
+            least 1000ms so a new state/pulse/micro cannot instantly replace it.
+            Switching to the already-active clip is always allowed (no visual change)."""
+            if target_clip is not None and target_clip == self.model.active_clip_name:
+                return True
+            now_ms = self._now_ms()
+            if now_ms - self.last_action_switch_ms >= 1000:
+                self.last_action_switch_ms = now_ms
+                return True
+            return False
 
         def _weighted_micro_index(self) -> int:
             """Pick a micro clip with recency decay: recently played clips are
@@ -948,15 +969,18 @@ def run_visual(recorder: EventRecorder, snapshot_path: Path | None = None) -> in
             # Randomly react with head-pat or poke on every click.
             reaction = random.choice(("head_pat", "poke"))
             if reaction == "head_pat":
-                self._play_model_overlay("head_pat")
+                if self._action_allowed("head_pat"):
+                    self._play_model_overlay("head_pat")
                 self._show_overlay("嗯……我，我会忍住不弄折博士的手的……", self.status_detail, self.status_state, 1800)
             else:
-                self._play_model_overlay("poke")
+                if self._action_allowed("poke"):
+                    self._play_model_overlay("poke")
                 self._show_overlay("呀……！博士，请不要突然吓我……", self.status_detail, self.status_state, 1500)
 
         def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
             if event.button() == Qt.MouseButton.LeftButton:
-                self._play_model_overlay("head_pat")
+                if self._action_allowed("head_pat"):
+                    self._play_model_overlay("head_pat")
                 self._show_overlay("博士，谢谢你一直照顾我们。喵。", self.status_detail, self.status_state, 1800)
 
         def contextMenuEvent(self, event: Any) -> None:
