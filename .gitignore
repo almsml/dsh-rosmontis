@@ -1,0 +1,19 @@
+# Node / DSH
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+
+# Python
+__pycache__/
+*.pyc
+.build/
+
+# 打包产物 / 备份
+runtime/bin/
+*.exe
+*.bak
+assets.backup.dafeiyu/
+
+# 系统
+.DS_Store
+Thumbs.db

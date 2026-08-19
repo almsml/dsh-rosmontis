@@ -1,0 +1,192 @@
+{
+  "formatVersion": 1,
+  "characterId": "rosmontis",
+  "baseSize": 238,
+  "maxFrameWidth": 238,
+  "maxFrameHeight": 260,
+  "clips": {
+    "idle": {
+      "frames": [
+        "idle/idle_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "breathe"
+    },
+    "blink": {
+      "frames": [
+        "blink/blink_238.png",
+        "blink/blink_238.png"
+      ],
+      "frameMs": 1000,
+      "loop": false
+    },
+    "glance": {
+      "frames": [
+        "glance/glance_238.png",
+        "glance/glance_238.png"
+      ],
+      "frameMs": 1000,
+      "loop": false
+    },
+    "thinking": {
+      "frames": [
+        "thinking/thinking_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "think"
+    },
+    "working": {
+      "frames": [
+        "working/working_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "work"
+    },
+    "working_search": {
+      "frames": [
+        "working_search/working_search_238.png"
+      ],
+      "frameMs": 135,
+      "loop": true
+    },
+    "working_command": {
+      "frames": [
+        "working_command/working_command_238.png"
+      ],
+      "frameMs": 135,
+      "loop": true
+    },
+    "walk_start_left": {
+      "frames": [
+        "walk_start_left/walk_start_left_238.png"
+      ],
+      "frameMs": 118,
+      "loop": false
+    },
+    "walk_stop_left": {
+      "frames": [
+        "walk_stop_left/walk_stop_left_238.png"
+      ],
+      "frameMs": 135,
+      "loop": false
+    },
+    "walk_start_right": {
+      "frames": [
+        "walk_start_right/walk_start_right_238.png"
+      ],
+      "frameMs": 118,
+      "loop": false
+    },
+    "walk_stop_right": {
+      "frames": [
+        "walk_stop_right/walk_stop_right_238.png"
+      ],
+      "frameMs": 135,
+      "loop": false
+    },
+    "waiting": {
+      "frames": [
+        "waiting/waiting_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "wait"
+    },
+    "success": {
+      "frames": [
+        "success/success_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "bounce"
+    },
+    "error": {
+      "frames": [
+        "error/error_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "shake"
+    },
+    "error_dizzy": {
+      "frames": [
+        "error_dizzy/error_dizzy_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true,
+      "motion": "dizzy"
+    },
+    "dragging": {
+      "frames": [
+        "dragging/dragging_238.png"
+      ],
+      "frameMs": 180,
+      "loop": true
+    },
+    "head_pat": {
+      "frames": [
+        "head_pat/head_pat_238.png",
+        "head_pat/head_pat_238.png"
+      ],
+      "frameMs": 500,
+      "loop": false
+    },
+    "poke": {
+      "frames": [
+        "poke/poke_238.png",
+        "poke/poke_238.png"
+      ],
+      "frameMs": 500,
+      "loop": false
+    },
+    "tail": {
+      "frames": [
+        "tail/tail_238.png",
+        "tail/tail_238.png"
+      ],
+      "frameMs": 500,
+      "loop": false
+    },
+    "hum": {
+      "frames": [
+        "hum/hum_238.png",
+        "hum/hum_238.png"
+      ],
+      "frameMs": 1000,
+      "loop": false
+    },
+    "float": {
+      "frames": [
+        "float/float_238.png",
+        "float/float_238.png"
+      ],
+      "frameMs": 1000,
+      "loop": false
+    }
+  },
+  "stateMap": {
+    "IDLE": "idle",
+    "THINKING": "thinking",
+    "WORKING": "working",
+    "WAITING": "waiting",
+    "SUCCESS": "success",
+    "ERROR": "error",
+    "DISCONNECTED": "idle"
+  },
+  "workingActivityMap": {
+    "searching": "working_search",
+    "commanding": "working_command",
+    "editing": "working",
+    "testing": "working_command",
+    "using-tool": "working"
+  },
+  "idleMicroClips": [
+    "blink",
+    "glance",
+    "hum",
+    "float"
+  ]
+}
